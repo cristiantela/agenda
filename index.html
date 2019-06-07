@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Agenda</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body>
+	<div id="app">
+		<div class="container" :style="{
+			filter: showModal ? 'blur(5px)' : null,
+			transition: 'all .2s',
+		}">
+			<div class="row">
+				<div class="col">
+					<div class="text-center">
+						<h1>My amazing agenda!</h1>
+					</div>
+
+					<div>
+						<button @click="showModal = true" class="btn btn-sm btn-primary">
+							Add event
+						</button>
+					</div>
+
+					<div v-for="event in data">
+						<div>
+							{{ formatDateTime(event.datetime) }}
+						</div>
+
+						<div>
+							<b>{{ event.title }}</b>
+						</div>
+
+						<div>{{ event.description }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div :style="{
+			backgroundColor: 'rgba(0, 0, 0, 0.5)',
+			position: 'fixed',
+			top: showModal ? 0 : '100%',
+			left: 0,
+			width: '100%',
+			height: '100%',
+			display: showModal ? '' : 'none',
+		}">
+			<div class="modal" tabindex="-1" role="dialog" :style="{
+				display: 'block',
+			}">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Add event</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="showModal = false">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+
+						<div class="modal-body">
+							<b>Date and time</b>
+							<input v-model="form.datetime" type="datetime-local" class="form-control form-control-sm">
+
+							<b>Title</b>
+							<input v-model="form.title" type="text" class="form-control form-control-sm">
+
+							<b>Description</b>
+							<textarea v-model="form.description" rows="5" class="form-control form-control-sm"></textarea>
+						</div>
+
+						<div class="modal-footer">
+							<button @click="showModal = false" type="button" class="btn btn-sm btn-secondary">Close</button>
+							<button @click="addEvent" type="button" class="btn btn-sm btn-primary">Add</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="js/vue.js"></script>
+
+	<script>
+
+		var data = localStorage.getItem('data')
+
+		if (data) {
+			data = JSON.parse(data)
+			data = data.map(event => {
+				event.datetime = new Date(event.datetime)
+				return event
+			})
+		} else {
+			data = [{
+				id: 1,
+				datetime: new Date(2019, 06, 06, 10, 30),
+				title: 'Trabalho escolar',
+				description: 'Um trabalho massa para fazer da escola',
+			}]
+		}
+
+		var app = new Vue({
+			el: '#app',
+			data: {
+				showModal: false,
+				data: data,
+				form: {
+					datetime: '',
+					title: '',
+					description: '',
+				},
+			},
+
+			methods: {
+				addEvent () {
+					if (new Date(this.form.datetime) == 'Invalid Date') {
+						alert('Invalid datetime')
+						return false
+					}
+
+					this.data.push({
+						id: Math.floor(Math.random() * 1000000000000),
+						datetime: new Date(this.form.datetime),
+						title: this.form.title,
+						description: this.form.description,
+					})
+
+					localStorage.setItem('data', JSON.stringify(this.data))
+
+					this.showModal = false
+				},
+
+				formatDateTime (datetime) {
+					let text = ''
+					
+					text += datetime.toDateString()
+
+					text += ' '
+
+					text += datetime.getHours() + ':'
+
+					if (datetime.getMinutes() < 10) {
+						text += '0'
+					}
+
+					text +=  datetime.getMinutes()
+
+
+					return text
+				},
+			},
+		})
+
+	</script>
+</body>
+</html>
